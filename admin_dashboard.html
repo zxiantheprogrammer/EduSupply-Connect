@@ -1,703 +1,458 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Admin - Supplies</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin - Supplies</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
 
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Parkinsans:wght@300..800&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Parkinsans:wght@300..800&display=swap" rel="stylesheet">
 
-    <style>
-    :root {
-        --accent: #f97316;
-        --muted: #6b7280;
-    }
+  <style>
+    :root { --accent: #f97316; --muted: #6b7280; }
+    body, input, select, button, textarea, label { font-family: 'Parkinsans', sans-serif; }
+    body { background-color: #fafafa; color: #1f2937; letter-spacing: -0.01em; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+    main { margin-top: 80px; }
+    th, td { font-size: 13px; text-align: center; }
+    .status-badge { display: inline-block; padding: 0.25rem 0.5rem; font-size: 0.75rem; font-weight: 600; border-radius: 9999px; }
+    .status-pending { background-color: #fef3c7; color: #b45309; }
+    .status-approved { background-color: #dcfce7; color: #166534; }
+    .status-rejected { background-color: #fee2e2; color: #991b1b; }
+    #supplyTableBody tr { transition: background-color .2s ease; }
+    .modal-inner { max-height: 70vh; overflow: auto; }
+    @media (min-width: 768px) { .mobile-only { display: none; } }
+    @media (min-width: 1024px) { main { margin-left: 16rem; } }
+    @media (max-width: 1023px) { main { margin-left: 0; } }
+    .toast { backdrop-filter: blur(10px); background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25); color: white; font-size: 14px; padding: 10px 16px; border-radius: 12px; display: flex; align-items: center; gap: 10px; box-shadow: 0 4px 30px rgba(0,0,0,0.2); animation: slideIn 0.3s ease, fadeOut 0.5s ease 2.8s forwards; pointer-events: auto; min-width: 260px; text-align: center; justify-content: center; }
+    .toast-success { background: rgba(34,197,94,0.25); border-left: 4px solid #22c55e; }
+    .toast-error { background: rgba(239,68,68,0.25); border-left: 4px solid #ef4444; }
+    .toast-warning { background: rgba(234,179,8,0.25); border-left: 4px solid #eab308; }
+    @keyframes slideIn { from { opacity:0; transform:translateY(-100%) scale(0.95); } to { opacity:1; transform:translateY(0) scale(1); } }
+    @keyframes fadeOut { to { opacity:0; transform:translateY(-50%) scale(0.95); } }
+    @keyframes pulse-slow {
+    0%, 100% { opacity: 0.9; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.05); }
+}
+.animate-pulse-slow { animation: pulse-slow 3s ease-in-out infinite; }
 
-    body,
-    input,
-    select,
-    button,
-    textarea,
-    label {
-        font-family: 'Parkinsans', sans-serif;
-    }
+@keyframes bounce-once {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-4px); }
+}
+.bounce { animation: bounce-once 0.4s ease; }
 
-    body {
-        background-color: #fafafa;
-        color: #1f2937;
-        letter-spacing: -0.01em;
-        -webkit-font-smoothing: antialiased;
-        -moz-osx-font-smoothing: grayscale;
-    }
 
-    main {
-        margin-top: 80px;
-        /* ✅ Adjust to match header height */
-    }
 
-    th,
-    td {
-        font-size: 13px;
-        text-align: center;
-    }
 
-    .status-badge {
-        display: inline-block;
-        padding: 0.25rem 0.5rem;
-        font-size: 0.75rem;
-        font-weight: 600;
-        border-radius: 9999px;
-    }
 
-    .status-pending {
-        background-color: #fef3c7;
-        color: #b45309;
-    }
-
-    .status-approved {
-        background-color: #dcfce7;
-        color: #166534;
-    }
-
-    .status-rejected {
-        background-color: #fee2e2;
-        color: #991b1b;
-    }
-
-    #supplyTableBody tr {
-        transition: background-color .2s ease;
-    }
-
-    .modal-inner {
-        max-height: 70vh;
-        overflow: auto;
-    }
-
-    @media (min-width: 768px) {
-        .mobile-only {
-            display: none;
-        }
-    }
-
-    /* ✅ Prevent overlap with sidebar */
-    @media (min-width: 1024px) {
-        main {
-            margin-left: 16rem;
-            /* same as w-64 (sidebar width) */
-        }
-    }
-
-    @media (max-width: 1023px) {
-        main {
-            margin-left: 0;
-        }
-    }
-
-    .toast {
-        backdrop-filter: blur(10px);
-        background: rgba(255, 255, 255, 0.15);
-        border: 1px solid rgba(255, 255, 255, 0.25);
-        color: white;
-        font-size: 14px;
-        padding: 10px 16px;
-        border-radius: 12px;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
-        animation: slideIn 0.3s ease, fadeOut 0.5s ease 2.8s forwards;
-        pointer-events: auto;
-        min-width: 260px;
-        text-align: center;
-        justify-content: center;
-    }
-
-    .toast-success {
-        background: rgba(34, 197, 94, 0.25);
-        border-left: 4px solid #22c55e;
-    }
-
-    .toast-error {
-        background: rgba(239, 68, 68, 0.25);
-        border-left: 4px solid #ef4444;
-    }
-
-    .toast-warning {
-        background: rgba(234, 179, 8, 0.25);
-        border-left: 4px solid #eab308;
-    }
-
-    @keyframes slideIn {
-        from {
-            opacity: 0;
-            transform: translateY(-100%) scale(0.95);
-        }
-
-        to {
-            opacity: 1;
-            transform: translateY(0) scale(1);
-        }
-    }
-
-    @keyframes fadeOut {
-        to {
-            opacity: 0;
-            transform: translateY(-50%) scale(0.95);
-        }
-    }
-    </style>
+  </style>
 </head>
 
+<header
+    class="fixed w-full z-50 bg-gradient-to-r from-orange-500 via-orange-600 to-orange-700 shadow-lg backdrop-blur-md transition-all duration-300">
+    <div class="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
 
-<body class="relative min-h-screen text-gray-700"
-    style="background: url('assets/logo/danhs1.jpg') no-repeat center center fixed; background-size: cover;">
-
-    <!-- 🔹 Proper translucent blur overlay -->
-    <div class="absolute inset-0 bg-black/80 backdrop-blur-sm">
-        <div class="flex">
-            <?php include 'includes/navbar.php'; ?>
-
-            <!-- ✅ Fixed main tag -->
-            <main class="flex-1 p-4 sm:p-6 max-w-7xl mx-auto">
-
-                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4">
-                    <div class="flex items-center gap-2">
-                        <i data-lucide="box" class="w-6 h-6" style="color:var(--accent)"></i>
-                        <h2 class="text-xl font-semibold text-white">Supplies Management</h2>
-                    </div>
-
-                    <div class="flex items-center gap-3">
-                        <div class="relative">
-                            <i data-lucide="search" class="absolute left-3 top-2.5 w-4 h-4 text-gray-400"></i>
-                            <input id="searchInput" type="text" placeholder="Search supplies..."
-                                class="pl-9 pr-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[--accent] w-56 sm:w-64 transition" />
-                        </div>
-
-                        <button id="openModalBtn"
-                            class="bg-[--accent] hover:brightness-90 text-white text-sm font-medium px-4 py-2 rounded-lg flex items-center gap-2 transition">
-                            <i data-lucide="plus-circle" class="w-4 h-4"></i> Add Supply
-                        </button>
-                    </div>
-                </div>
-
-                <!-- ✅ Scrollable Table Container -->
-                <section class="bg-white rounded-2xl shadow border border-gray-100 overflow-hidden">
-                    <div class="hidden md:block max-h-[70vh] overflow-y-auto overflow-x-auto">
-                        <table class="min-w-full text-sm">
-                            <thead class="bg-[--accent] text-white sticky top-0 z-10">
-                                <tr>
-                                    <th class="p-3">Image</th>
-                                    <th class="p-3">Item</th>
-                                    <th class="p-3">Description</th>
-                                    <th class="p-3">Total Qty</th>
-                                    <th class="p-3">Unit</th>
-                                    <th class="p-3">Variants</th>
-                                    <th class="p-3">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="supplyTableBody"
-                                class="divide-y divide-gray-100 text-center transition-opacity duration-500"></tbody>
-
-                            <tr id="noResultsRow" class="hidden">
-                                <td colspan="7" class="py-6 text-gray-400 italic">No results found.</td>
-                            </tr>
-                        </table>
-                    </div>
-
-                    <!-- ✅ Mobile cards remain normal -->
-                    <div id="mobileCards" class="md:hidden p-4 grid gap-4"></div>
-                    <p id="noResultsCard" class="hidden text-center py-8 text-gray-400 italic">No results found.</p>
-                </section>
-            </main>
+        <!-- Logo + Title -->
+        <div class="flex items-center gap-3">
+            <div class="bg-white/20 p-2 rounded-full shadow-inner animate-pulse-slow">
+                <i data-lucide="settings" class="w-6 h-6 text-white"></i>
+            </div>
+            <h1 class="text-lg font-semibold text-white tracking-wide">Admin Panel</h1>
         </div>
+
+        <!-- Navigation Links -->
+        <nav id="navLinks" class="flex items-center gap-6 text-sm font-medium">
+            <!-- Links will be generated by JS -->
+        </nav>
     </div>
+</header>
 
+<body class="relative min-h-screen text-gray-700" style="background: url('assets/logo/danhs1.jpg') no-repeat center center fixed; background-size: cover;">
 
-    <!-- Modal -->
-    <div id="supplyModal" class="fixed inset-0 bg-black/50 hidden z-50 flex items-center justify-center">
-        <div class="bg-white rounded-xl shadow-lg w-full max-w-3xl p-5 relative modal-inner">
-            <button id="closeModal" class="absolute top-3 right-3 text-gray-500 hover:text-gray-700">
-                <i data-lucide="x" class="w-5 h-5"></i>
-            </button>
+<div class="absolute inset-0 bg-black/80 backdrop-blur-sm">
+  <div class="flex">
 
-            <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
-                <i data-lucide="package-plus" class="w-5 h-5" style="color:var(--accent)"></i>
-                <span id="modalTitle">Add Supply</span>
-            </h3>
+    <main class="flex-1 p-4 sm:p-6 max-w-7xl mx-auto">
 
-            <form id="supplyFormModal" enctype="multipart/form-data" class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <input type="hidden" name="supply_id" id="modal_supply_id" />
-
-                <div class="flex flex-col">
-                    <label class="text-xs font-semibold text-gray-600 mb-1">Supply Name</label>
-                    <input name="name" type="text" placeholder="e.g., Bond Paper" required
-                        class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[--accent] transition">
-                </div>
-
-                <div class="flex flex-col">
-                    <label class="text-xs font-semibold text-gray-600 mb-1">Description</label>
-                    <input name="description" type="text" placeholder="Short description"
-                        class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[--accent] transition">
-                </div>
-
-                <div class="flex flex-col">
-                    <label class="text-xs font-semibold text-gray-600 mb-1">Total Quantity</label>
-                    <input name="quantity" id="modal_totalQuantity" type="number" min="0" placeholder="0" required
-                        class="border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 focus:ring-2 focus:ring-[--accent] transition">
-                </div>
-
-                <div class="flex flex-col">
-                    <label class="text-xs font-semibold text-gray-600 mb-1">Unit</label>
-                    <input name="unit" type="text" placeholder="pcs, reams, etc."
-                        class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[--accent] transition">
-                </div>
-
-                <div class="md:col-span-2 flex flex-col">
-                    <label class="text-xs font-semibold text-gray-600 mb-1">Upload Image</label>
-                    <input name="image" type="file" accept="image/*"
-                        class="border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-50 focus:ring-2 focus:ring-[--accent] transition">
-                </div>
-
-                <div class="col-span-3 border border-gray-200 rounded-lg bg-gray-50 mt-4">
-                    <div class="flex justify-between items-center px-4 py-2 border-b bg-gray-100 rounded-t-lg">
-                        <h4 class="font-medium text-gray-700 text-sm flex items-center gap-2">
-                            <i data-lucide="layers" class="w-4 h-4"></i> Variants
-                        </h4>
-                        <button type="button" id="modalAddVariant"
-                            class="bg-[--accent] hover:brightness-90 text-white text-xs px-2.5 py-1 rounded flex items-center gap-1 transition">
-                            <i data-lucide="plus" class="w-3.5 h-3.5"></i> Add Variant
-                        </button>
-                    </div>
-                    <div id="modalVariantContainer" class="p-3 space-y-2"></div>
-                </div>
-
-                <div class="col-span-3 flex justify-end mt-5">
-                    <button type="submit"
-                        class="bg-[--accent] hover:brightness-90 text-white text-sm font-medium rounded-lg px-6 py-2.5 flex items-center gap-2 transition">
-                        <i data-lucide="save" class="w-4 h-4"></i> Save Supply
-                    </button>
-                </div>
-            </form>
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4">
+        <div class="flex items-center gap-2">
+          <i data-lucide="box" class="w-6 h-6" style="color:var(--accent)"></i>
+          <h2 class="text-xl font-semibold text-white">Supplies Management</h2>
         </div>
-    </div>
+        <div class="flex items-center gap-3">
+          <div class="relative">
+            <i data-lucide="search" class="absolute left-3 top-2.5 w-4 h-4 text-gray-400"></i>
+            <input id="searchInput" type="text" placeholder="Search supplies..." class="pl-9 pr-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[--accent] w-56 sm:w-64 transition" />
+          </div>
+          <button id="openModalBtn" class="bg-[--accent] hover:brightness-90 text-white text-sm font-medium px-4 py-2 rounded-lg flex items-center gap-2 transition">
+            <i data-lucide="plus-circle" class="w-4 h-4"></i> Add Supply
+          </button>
+        </div>
+      </div>
 
-    <!-- 🌟 Toast Notification Container -->
-    <div id="toastContainer"
-        class="fixed top-20 left-1/2 -translate-x-1/2 z-[9999] flex flex-col gap-3 items-center pointer-events-none">
-    </div>
+      <!-- Table -->
+      <section class="bg-white rounded-2xl shadow border border-gray-100 overflow-hidden">
+        <div class="hidden md:block max-h-[70vh] overflow-y-auto overflow-x-auto">
+          <table class="min-w-full text-sm">
+            <thead class="bg-[--accent] text-white sticky top-0 z-10">
+              <tr>
+                <th class="p-3">Image</th>
+                <th class="p-3">Item</th>
+                <th class="p-3">Description</th>
+                <th class="p-3">Total Qty</th>
+                <th class="p-3">Unit</th>
+                <th class="p-3">Variants</th>
+                <th class="p-3">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="supplyTableBody" class="divide-y divide-gray-100 text-center transition-opacity duration-500"></tbody>
+            <tr id="noResultsRow" class="hidden">
+              <td colspan="7" class="py-6 text-gray-400 italic">No results found.</td>
+            </tr>
+          </table>
+        </div>
+        <div id="mobileCards" class="md:hidden p-4 grid gap-4"></div>
+        <p id="noResultsCard" class="hidden text-center py-8 text-gray-400 italic">No results found.</p>
+      </section>
+    </main>
+  </div>
+</div>
 
+<!-- Modal -->
+<div id="supplyModal" class="fixed inset-0 bg-black/50 hidden z-50 flex items-center justify-center">
+  <div class="bg-white rounded-xl shadow-lg w-full max-w-3xl p-5 relative modal-inner">
+    <button id="closeModal" class="absolute top-3 right-3 text-gray-500 hover:text-gray-700">
+      <i data-lucide="x" class="w-5 h-5"></i>
+    </button>
 
-    <script>
-    // Helper functions
-    function statusBadge(status) {
-        if (status === 'Pending') return `<span class="status-badge status-pending">Pending</span>`;
-        if (status === 'Approved') return `<span class="status-badge status-approved">Approved</span>`;
-        if (status === 'Rejected') return `<span class="status-badge status-rejected">Rejected</span>`;
-        return `<span class="status-badge bg-gray-100 text-gray-800">${status}</span>`;
+    <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
+      <i data-lucide="package-plus" class="w-5 h-5" style="color:var(--accent)"></i>
+      <span id="modalTitle">Add Supply</span>
+    </h3>
+
+    <form id="supplyFormModal" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <input type="hidden" id="modal_supply_id">
+
+      <div class="flex flex-col">
+        <label class="text-xs font-semibold text-gray-600 mb-1">Supply Name</label>
+        <input name="name" type="text" placeholder="e.g., Bond Paper" required class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[--accent] transition">
+      </div>
+
+      <div class="flex flex-col">
+        <label class="text-xs font-semibold text-gray-600 mb-1">Description</label>
+        <input name="description" type="text" placeholder="Short description" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[--accent] transition">
+      </div>
+
+      <div class="flex flex-col">
+        <label class="text-xs font-semibold text-gray-600 mb-1">Total Quantity</label>
+        <input name="quantity" id="modal_totalQuantity" type="number" min="0" placeholder="0" required class="border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 focus:ring-2 focus:ring-[--accent] transition">
+      </div>
+
+      <div class="flex flex-col">
+        <label class="text-xs font-semibold text-gray-600 mb-1">Unit</label>
+        <input name="unit" type="text" placeholder="pcs, reams, etc." class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[--accent] transition">
+      </div>
+
+      <div class="md:col-span-2 flex flex-col">
+        <label class="text-xs font-semibold text-gray-600 mb-1">Upload Image</label>
+        <input name="image" type="file" accept="image/*" class="border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-50 focus:ring-2 focus:ring-[--accent] transition">
+      </div>
+
+      <div class="col-span-3 border border-gray-200 rounded-lg bg-gray-50 mt-4">
+        <div class="flex justify-between items-center px-4 py-2 border-b bg-gray-100 rounded-t-lg">
+          <h4 class="font-medium text-gray-700 text-sm flex items-center gap-2">
+            <i data-lucide="layers" class="w-4 h-4"></i> Variants
+          </h4>
+          <button type="button" id="modalAddVariant" class="bg-[--accent] hover:brightness-90 text-white text-xs px-2.5 py-1 rounded flex items-center gap-1 transition">
+            <i data-lucide="plus" class="w-3.5 h-3.5"></i> Add Variant
+          </button>
+        </div>
+        <div id="modalVariantContainer" class="p-3 space-y-2"></div>
+      </div>
+
+      <div class="col-span-3 flex justify-end mt-5">
+        <button type="submit" class="bg-[--accent] hover:brightness-90 text-white text-sm font-medium rounded-lg px-6 py-2.5 flex items-center gap-2 transition">
+          <i data-lucide="save" class="w-4 h-4"></i> Save Supply
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Toast Container -->
+<div id="toastContainer" class="fixed top-20 left-1/2 -translate-x-1/2 z-[9999] flex flex-col gap-3 items-center pointer-events-none"></div>
+<script src="https://cdn.jsdelivr.net/npm/lucide@0.259.0/dist/lucide.min.js"></script>
+<script>
+let allSupplies = [];
+
+// ---- NAV LINKS ----
+const links = [
+    { href: "admin_dashboard.html", label: "Supplies" },
+    { href: "admin_teachers.html", label: "Teachers" },
+    { href: "admin_requests.html", label: "Requests", badge: true },
+    { href: "admin_transactions.html", label: "Transactions" }
+];
+
+const currentPage = window.location.pathname.split("/").pop();
+const navContainer = document.getElementById('navLinks');
+
+links.forEach(link => {
+    const a = document.createElement('a');
+    a.href = link.href;
+    a.className = 'relative group flex items-center gap-1 text-orange-100 hover:text-white transition-colors duration-300';
+    if(currentPage === link.href) a.classList.add('text-white', 'font-semibold');
+    a.textContent = link.label;
+
+    // Badge for requests
+    if(link.badge) {
+        const badge = document.createElement('span');
+        badge.id = 'notifBadge';
+        badge.className = 'hidden ml-1 bg-red-600 text-white text-xs font-bold rounded-full px-1.5 py-0.5 shadow-md';
+        badge.textContent = '0';
+        a.appendChild(badge);
     }
 
-    const modal = document.getElementById('supplyModal');
-    const modalTitle = document.getElementById('modalTitle');
-    const openModalBtn = document.getElementById('openModalBtn');
-    const closeModalBtn = document.getElementById('closeModal');
-    const modalVariantContainer = document.getElementById('modalVariantContainer');
+    const underline = document.createElement('span');
+    underline.className = `absolute left-0 -bottom-1 w-full h-0.5 ${currentPage === link.href ? 'bg-white scale-x-100' : 'bg-white/60 scale-x-0 group-hover:scale-x-100'} transition-transform duration-300 origin-left`;
+    a.appendChild(underline);
 
-    // Open modal for Add
-    openModalBtn.onclick = () => {
-        modalTitle.textContent = 'Add Supply';
-        document.getElementById('supplyFormModal').reset();
-        modalVariantContainer.innerHTML = '';
-        document.getElementById('modal_supply_id').value = '';
-        document.getElementById('modal_totalQuantity').readOnly = false;
-        modal.classList.remove('hidden');
-    };
+    navContainer.appendChild(a);
+});
 
-    // Close modal
-    closeModalBtn.onclick = () => modal.classList.add('hidden');
-    modal.addEventListener('click', e => {
-        if (e.target === modal) modal.classList.add('hidden');
+// Logout button
+const logout = document.createElement('a');
+logout.href = 'logout.html';
+logout.className = 'ml-2 bg-white/20 hover:bg-red-500 text-white px-3 py-1.5 rounded-md transition-all duration-300 hover:shadow-lg hover:translate-y-[-2px]';
+logout.textContent = 'Logout';
+navContainer.appendChild(logout);
+
+// ---- REQUEST BADGE FUNCTIONALITY ----
+let lastCount = 0;
+
+async function loadRequestCount() {
+    try {
+        const res = await fetch('requests/pending_count_admin.json'); // Replace with your API or JSON endpoint
+        const data = await res.json();
+        const badge = document.getElementById('notifBadge');
+        const count = data.count || 0;
+
+        if(count > 0) {
+            badge.textContent = count;
+            badge.classList.remove('hidden');
+            if(count !== lastCount) {
+                badge.classList.add('bounce');
+                setTimeout(() => badge.classList.remove('bounce'), 500);
+            }
+        } else {
+            badge.classList.add('hidden');
+        }
+        lastCount = count;
+    } catch(err) {
+        console.error('Failed to load request count:', err);
+    }
+}
+
+// Load immediately and refresh every 15s
+loadRequestCount();
+setInterval(loadRequestCount, 15000);
+
+// ---------- Toast ----------
+function showToast(msg, type='success'){
+  const container = document.getElementById("toastContainer");
+  const toast = document.createElement("div");
+  toast.className = `toast toast-${type}`;
+  toast.innerHTML = `<i data-lucide="${type==='success'?'check-circle':type==='error'?'x-circle':'alert-circle'}" class="w-5 h-5"></i><span>${msg}</span>`;
+  container.appendChild(toast);
+  lucide.createIcons(); // render icons in toast
+  setTimeout(()=>toast.remove(),3500);
+}
+
+// ---------- Modal ----------
+const modal = document.getElementById('supplyModal');
+const modalTitle = document.getElementById('modalTitle');
+const openModalBtn = document.getElementById('openModalBtn');
+const closeModalBtn = document.getElementById('closeModal');
+const modalVariantContainer = document.getElementById('modalVariantContainer');
+
+openModalBtn.onclick = () => {
+  modalTitle.textContent = 'Add Supply';
+  document.getElementById('supplyFormModal').reset();
+  modalVariantContainer.innerHTML = '';
+  document.getElementById('modal_supply_id').value = '';
+  document.getElementById('modal_totalQuantity').readOnly = false;
+  modal.classList.remove('hidden');
+};
+
+closeModalBtn.onclick = () => modal.classList.add('hidden');
+modal.addEventListener('click', e => { if(e.target===modal) modal.classList.add('hidden'); });
+
+document.getElementById('modalAddVariant').onclick = () => {
+  const row = document.createElement('div');
+  row.className = 'variantRow grid grid-cols-1 md:grid-cols-3 gap-2 items-center';
+  row.innerHTML = `
+    <input name="variant_name[]" type="text" placeholder="Variant Name" class="border px-3 py-1.5 rounded-lg text-sm focus:ring-2 focus:ring-[--accent]">
+    <input name="variant_quantity[]" type="number" placeholder="Quantity" class="border px-3 py-1.5 rounded-lg text-sm focus:ring-2 focus:ring-[--accent]">
+    <button type="button" class="removeVariant bg-red-600 hover:bg-red-700 text-white rounded-md px-3 py-1.5 text-xs">Remove</button>
+  `;
+  modalVariantContainer.appendChild(row);
+  updateTotalQuantity();
+};
+
+// Remove variant rows
+document.addEventListener('click', e=>{
+  if(e.target.classList.contains('removeVariant')){
+    e.target.closest('.variantRow').remove();
+    updateTotalQuantity();
+  }
+});
+
+function updateTotalQuantity(){
+  const qtyInputs = document.querySelectorAll('input[name="variant_quantity[]"]');
+  let total = 0;
+  qtyInputs.forEach(i=>total+=parseInt(i.value)||0);
+  const totalInput = document.getElementById('modal_totalQuantity');
+  if(qtyInputs.length>0) totalInput.value=total;
+  totalInput.readOnly=false;
+  totalInput.classList.remove('bg-gray-100');
+  totalInput.classList.add('bg-white');
+}
+
+document.addEventListener('input', e=>{
+  if(e.target.name==='variant_quantity[]') updateTotalQuantity();
+});
+
+// ---------- Supply management ----------
+function renderSupplies(){
+  const tbody = document.getElementById('supplyTableBody');
+  const mobileGrid = document.getElementById('mobileCards');
+  tbody.innerHTML=''; mobileGrid.innerHTML='';
+  if(allSupplies.length===0){
+    document.getElementById('noResultsRow').classList.remove('hidden');
+    document.getElementById('noResultsCard').classList.remove('hidden');
+    return;
+  } else {
+    document.getElementById('noResultsRow').classList.add('hidden');
+    document.getElementById('noResultsCard').classList.add('hidden');
+  }
+
+  allSupplies.forEach(s=>{
+    const tr = document.createElement('tr');
+
+    // Image
+    const tdImage = document.createElement('td');
+    tdImage.className='p-2';
+    if(s.image){ 
+      const img = document.createElement('img'); 
+      img.src = s.image; img.alt = s.name; img.className='w-12 h-12 object-cover rounded mx-auto'; 
+      tdImage.appendChild(img); 
+    } else tdImage.textContent='-';
+    tr.appendChild(tdImage);
+
+    // Name, Description, Qty, Unit
+    ['name','description','quantity_available','unit'].forEach((key,i)=>{
+      const td = document.createElement('td'); td.className='p-2'; td.textContent = s[key] || (i===2?0:'-'); tr.appendChild(td);
     });
 
-    // Add variant in modal
-    document.getElementById('modalAddVariant').onclick = () => {
-        const row = document.createElement('div');
-        row.className = 'variantRow grid grid-cols-1 md:grid-cols-3 gap-2 items-center';
-        row.innerHTML = `
-        <input name="variant_name[]" type="text" placeholder="Variant Name" class="border px-3 py-1.5 rounded-lg text-sm focus:ring-2 focus:ring-[--accent]">
-        <input name="variant_quantity[]" type="number" placeholder="Quantity" class="border px-3 py-1.5 rounded-lg text-sm focus:ring-2 focus:ring-[--accent]">
+    // Variants
+    const tdVariants = document.createElement('td'); tdVariants.className='p-2';
+    if(s.variants?.length){
+      s.variants.forEach(v=>{
+        const div = document.createElement('div'); div.className='text-xs'; div.textContent=`${v.variant_name}: ${v.quantity_available}`; tdVariants.appendChild(div);
+      });
+    } else { tdVariants.innerHTML='<i class="text-gray-400 text-xs">None</i>'; }
+    tr.appendChild(tdVariants);
+
+    // Actions
+    const tdActions = document.createElement('td'); tdActions.className='p-2 flex gap-2 justify-center';
+    const editBtn = document.createElement('button'); editBtn.className='text-[--accent] text-xs'; editBtn.textContent='Edit'; editBtn.onclick=()=>editSupply(s);
+    const delBtn = document.createElement('button'); delBtn.className='text-red-600 text-xs'; delBtn.textContent='Delete'; delBtn.onclick=()=>deleteSupply(s.supply_id);
+    tdActions.appendChild(editBtn); tdActions.appendChild(delBtn);
+    tr.appendChild(tdActions);
+    tbody.appendChild(tr);
+  });
+
+  // Render icons after table rows
+  lucide.createIcons();
+}
+
+// Edit supply
+function editSupply(supply){
+  modalTitle.textContent='Edit Supply';
+  modal.classList.remove('hidden');
+  const form=document.getElementById('supplyFormModal'); form.reset();
+  document.getElementById('modal_supply_id').value=supply.supply_id;
+  form.querySelector('input[name="name"]').value=supply.name||'';
+  form.querySelector('input[name="description"]').value=supply.description||'';
+  document.getElementById('modal_totalQuantity').value=supply.quantity_available||0;
+  form.querySelector('input[name="unit"]').value=supply.unit||'';
+  modalVariantContainer.innerHTML='';
+  if(supply.variants?.length){
+    supply.variants.forEach(v=>{
+      const row=document.createElement('div'); row.className='variantRow grid grid-cols-1 md:grid-cols-3 gap-2 items-center';
+      row.innerHTML=`
+        <input name="variant_name[]" type="text" placeholder="Variant Name" class="border px-3 py-1.5 rounded-lg text-sm" value="${v.variant_name}">
+        <input name="variant_quantity[]" type="number" placeholder="Quantity" class="border px-3 py-1.5 rounded-lg text-sm" value="${v.quantity_available}">
         <button type="button" class="removeVariant bg-red-600 hover:bg-red-700 text-white rounded-md px-3 py-1.5 text-xs">Remove</button>
       `;
-        modalVariantContainer.appendChild(row);
-        setTimeout(updateTotalQuantity, 100);
-    };
-
-    document.addEventListener('click', e => {
-        if (e.target.classList.contains('removeVariant')) {
-            e.target.closest('.variantRow').remove();
-            setTimeout(updateTotalQuantity, 100);
-        }
+      modalVariantContainer.appendChild(row);
     });
+  }
 
-    // Auto-update total quantity
-    function updateTotalQuantity() {
-        const qtyInputs = document.querySelectorAll('input[name="variant_quantity[]"]');
-        let total = 0;
-        qtyInputs.forEach(input => total += parseInt(input.value) || 0);
-        const totalInput = document.getElementById('modal_totalQuantity');
-        if (qtyInputs.length > 0) totalInput.value = total;
-        totalInput.readOnly = false;
-        totalInput.classList.remove('bg-gray-100');
-        totalInput.classList.add('bg-white');
-    }
+  // Render icons in modal (like save button, etc.)
+  lucide.createIcons();
+}
 
-    document.addEventListener('input', e => {
-        if (e.target.name === 'variant_quantity[]') updateTotalQuantity();
-    });
+// Delete supply
+function deleteSupply(id){
+  if(!confirm('Delete this supply?')) return;
+  allSupplies = allSupplies.filter(s=>s.supply_id!==id);
+  renderSupplies();
+  showToast('Deleted successfully','success');
+}
 
-    // Load supplies + render
-    let allSupplies = [];
+// Submit form
+document.getElementById('supplyFormModal').addEventListener('submit', e=>{
+  e.preventDefault();
+  const formData = new FormData(e.target);
+  const variants = [];
+  const names = formData.getAll('variant_name[]'); 
+  const quantities = formData.getAll('variant_quantity[]');
+  for(let i=0;i<names.length;i++){ 
+    if(names[i]) variants.push({variant_name:names[i],quantity_available:parseInt(quantities[i])||0}); 
+  }
+  const supplyId = formData.get('supply_id') || Date.now().toString();
+  const existingIndex = allSupplies.findIndex(s=>s.supply_id===supplyId);
+  const supplyObj = {
+    supply_id: supplyId,
+    name: formData.get('name'),
+    description: formData.get('description'),
+    unit: formData.get('unit'),
+    quantity_available: parseInt(formData.get('quantity'))||0,
+    variants,
+    image: formData.get('image')||''
+  };
+  if(existingIndex>-1){ allSupplies[existingIndex]=supplyObj; showToast('Updated successfully','success'); }
+  else{ allSupplies.push(supplyObj); showToast('Added successfully','success'); }
+  modal.classList.add('hidden');
+  renderSupplies();
+});
 
-    async function loadSupplies() {
-        try {
-            const res = await fetch('supplies/list.php');
-            if (!res.ok) throw new Error('Failed to load supplies');
-            const data = await res.json();
-            allSupplies = data;
-            renderSupplies();
-        } catch (err) {
-            const tbody = document.getElementById('supplyTableBody');
-            tbody.innerHTML =
-                `<tr><td colspan="7" class="p-6 text-center text-red-600">Error: ${err.message}</td></tr>`;
-            document.getElementById('mobileCards').innerHTML =
-                `<p class="text-red-600 text-center py-10">Error: ${err.message}</p>`;
-        }
-        lucide.createIcons();
-    }
+document.addEventListener('DOMContentLoaded', () => {
+  // Initial demo data
+  allSupplies = [
+    {supply_id:'1', name:'Bond Paper', description:'A4 size', unit:'ream', quantity_available:10, variants:[{variant_name:'White',quantity_available:5},{variant_name:'Blue',quantity_available:5}], image:'uploads/1761537069_Hard-Copy-1.jpg'},
+    {supply_id:'2', name:'Ink', description:'Black ink', unit:'pcs', quantity_available:20, variants:[], image:''}
+  ];
 
-    function renderSupplies() {
-        const tbody = document.getElementById('supplyTableBody');
-        const mobileGrid = document.getElementById('mobileCards');
-        tbody.innerHTML = '';
-        mobileGrid.innerHTML = '';
-
-        if (!Array.isArray(allSupplies) || allSupplies.length === 0) {
-            const isMobile = window.innerWidth < 768;
-            document.getElementById('supplyTableBody').innerHTML = '';
-            document.getElementById('mobileCards').innerHTML = '';
-
-            if (isMobile) {
-                document.getElementById('noResultsCard').classList.remove('hidden');
-                document.getElementById('noResultsRow').classList.add('hidden');
-            } else {
-                document.getElementById('noResultsRow').classList.remove('hidden');
-                document.getElementById('noResultsCard').classList.add('hidden');
-            }
-            return;
-        } else {
-            document.getElementById('noResultsRow').classList.add('hidden');
-            document.getElementById('noResultsCard').classList.add('hidden');
-        }
+  renderSupplies();
+  lucide.createIcons(); // initial render of icons
+});
+</script>
 
 
-        allSupplies.forEach(s => {
-            const tr = document.createElement('tr');
-
-            // Image
-            const tdImage = document.createElement('td');
-            tdImage.className = 'p-2';
-            if (s.image) {
-                const img = document.createElement('img');
-                img.src = s.image;
-                img.alt = s.name;
-                img.className = 'w-12 h-12 object-cover rounded mx-auto';
-                tdImage.appendChild(img);
-            } else tdImage.textContent = '-';
-            tr.appendChild(tdImage);
-
-            // Name, Description, Qty, Unit
-            ['name', 'description', 'quantity_available', 'unit'].forEach((key, i) => {
-                const td = document.createElement('td');
-                td.className = 'p-2';
-                td.textContent = s[key] || (i === 2 ? 0 : '-');
-                tr.appendChild(td);
-            });
-
-            // Variants
-            const tdVariants = document.createElement('td');
-            tdVariants.className = 'p-2';
-            if (s.variants?.length) {
-                s.variants.forEach(v => {
-                    const div = document.createElement('div');
-                    div.className = 'text-xs';
-                    div.textContent = `${v.variant_name}: ${v.quantity_available}`;
-                    tdVariants.appendChild(div);
-                });
-            } else {
-                const i = document.createElement('i');
-                i.className = 'text-gray-400 text-xs';
-                i.textContent = 'None';
-                tdVariants.appendChild(i);
-            }
-            tr.appendChild(tdVariants);
-
-            // Actions
-            const tdActions = document.createElement('td');
-            tdActions.className = 'p-2 flex gap-2 justify-center';
-            const editBtn = document.createElement('button');
-            editBtn.className = 'text-[--accent] text-xs';
-            editBtn.textContent = 'Edit';
-            editBtn.onclick = () => editSupply(s);
-            const delBtn = document.createElement('button');
-            delBtn.className = 'text-red-600 text-xs';
-            delBtn.textContent = 'Delete';
-            delBtn.onclick = () => deleteSupply(s.supply_id);
-            tdActions.appendChild(editBtn);
-            tdActions.appendChild(delBtn);
-            tr.appendChild(tdActions);
-
-            tbody.appendChild(tr);
-
-            // Mobile card
-            const card = document.createElement('div');
-            card.className =
-                'bg-white rounded-2xl shadow-sm border border-gray-100 p-4 flex flex-col gap-2 hover:shadow-lg transition w-full';
-            const top = document.createElement('div');
-            top.className = 'flex justify-between items-center mb-2';
-            const nameSpan = document.createElement('span');
-            nameSpan.className = 'text-sm text-gray-700 font-medium';
-            nameSpan.textContent = s.name;
-            top.appendChild(nameSpan);
-            card.appendChild(top);
-
-            const desc = document.createElement('p');
-            desc.className = 'text-sm text-gray-800';
-            desc.innerHTML =
-                `<strong>Qty:</strong> ${s.quantity_available || 0} • <strong>Unit:</strong> ${s.unit || '-'} `;
-            card.appendChild(desc);
-
-            const variantsDiv = document.createElement('div');
-            variantsDiv.className = 'text-sm text-gray-800';
-            if (s.variants?.length) {
-                s.variants.forEach(v => {
-                    const vdiv = document.createElement('div');
-                    vdiv.className = 'text-xs';
-                    vdiv.textContent = `${v.variant_name}: ${v.quantity_available}`;
-                    variantsDiv.appendChild(vdiv);
-                });
-            } else {
-                variantsDiv.innerHTML = `<i class="text-gray-400 text-xs">None</i>`
-            }
-            card.appendChild(variantsDiv);
-
-            const actionsRow = document.createElement('div');
-            actionsRow.className = 'flex gap-3 justify-center mt-2';
-            const ebtn = document.createElement('button');
-            ebtn.className = 'text-[--accent] text-sm';
-            ebtn.textContent = 'Edit';
-            ebtn.onclick = () => editSupply(s);
-            const dbtn = document.createElement('button');
-            dbtn.className = 'text-red-600 text-sm';
-            dbtn.textContent = 'Delete';
-            dbtn.onclick = () => deleteSupply(s.supply_id);
-            actionsRow.appendChild(ebtn);
-            actionsRow.appendChild(dbtn);
-            card.appendChild(actionsRow);
-
-            mobileGrid.appendChild(card);
-        });
-
-        // apply search filter if input has value
-        applySearchFilter();
-    }
-
-    // Edit supply
-    function editSupply(supply) {
-        modalTitle.textContent = 'Edit Supply';
-        modal.classList.remove('hidden');
-        const form = document.getElementById('supplyFormModal');
-        form.reset();
-        document.getElementById('modal_supply_id').value = supply.supply_id;
-        form.querySelector('input[name="name"]').value = supply.name || '';
-        form.querySelector('input[name="description"]').value = supply.description || '';
-        document.getElementById('modal_totalQuantity').value = supply.quantity_available || 0;
-        form.querySelector('input[name="unit"]').value = supply.unit || '';
-        modalVariantContainer.innerHTML = '';
-        if (supply.variants?.length) {
-            supply.variants.forEach(v => {
-                const row = document.createElement('div');
-                row.className = 'variantRow grid grid-cols-1 md:grid-cols-3 gap-2 items-center';
-                row.innerHTML = `
-            <input name="variant_name[]" type="text" placeholder="Variant Name" class="border px-3 py-1.5 rounded-lg text-sm" value="${v.variant_name}">
-            <input name="variant_quantity[]" type="number" placeholder="Quantity" class="border px-3 py-1.5 rounded-lg text-sm" value="${v.quantity_available}">
-            <button type="button" class="removeVariant bg-red-600 hover:bg-red-700 text-white rounded-md px-3 py-1.5 text-xs">Remove</button>
-          `;
-                modalVariantContainer.appendChild(row);
-            });
-        }
-    }
-
-    // Delete supply
-    async function deleteSupply(id) {
-        if (!confirm('Delete this supply?')) return;
-        try {
-            const res = await fetch('supplies/delete.php', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded'
-                },
-                body: `supply_id=${id}`
-            });
-            const text = await res.text();
-            showToast(text.includes('success') ? text : 'Deleted successfully', 'success');
-
-            loadSupplies();
-        } catch (err) {
-            showToast('Delete failed: ' + err.message, 'error');
-
-        }
-    }
-
-    // Submit modal form
-    document.getElementById('supplyFormModal').addEventListener('submit', async e => {
-        e.preventDefault();
-        const formData = new FormData(e.target);
-
-        // Prepare variants JSON
-        const variants = [];
-        const names = formData.getAll('variant_name[]');
-        const quantities = formData.getAll('variant_quantity[]');
-        for (let i = 0; i < names.length; i++) {
-            if (names[i]) variants.push({
-                variant_name: names[i],
-                quantity_available: quantities[i] || 0
-            })
-        }
-        formData.append('variants', JSON.stringify(variants));
-
-        const supplyId = formData.get('supply_id');
-        const url = supplyId ? 'supplies/edit.php' : 'supplies/add.php';
-
-        try {
-            const res = await fetch(url, {
-                method: 'POST',
-                body: formData
-            });
-            const data = await res.json();
-            showToast(data.message || 'Saved successfully', data.status === 'success' ? 'success' :
-            'error');
-
-            if (data.status === 'success') {
-                e.target.reset();
-                modal.classList.add('hidden');
-                loadSupplies();
-            }
-        } catch (err) {
-            showToast('Save failed: ' + err.message, 'error');
-
-
-        }
-    });
-
-    function applySearchFilter() {
-        const filter = document.getElementById('searchInput').value.toLowerCase();
-        const rows = document.querySelectorAll('#supplyTableBody tr');
-        const cards = document.querySelectorAll('#mobileCards > div');
-
-        let anyVisibleDesktop = false;
-        let anyVisibleMobile = false;
-
-        // ✅ Desktop (Table)
-        rows.forEach(row => {
-            const text = Array.from(row.children)
-                .slice(1, 6)
-                .map(td => td.textContent.toLowerCase())
-                .join(' ');
-            const visible = text.includes(filter);
-            row.style.display = visible ? '' : 'none';
-            if (visible) anyVisibleDesktop = true;
-        });
-
-        // ✅ Mobile (Cards)
-        cards.forEach(card => {
-            const txt = card.textContent.toLowerCase();
-            const visible = txt.includes(filter);
-            card.style.display = visible ? '' : 'none';
-            if (visible) anyVisibleMobile = true;
-        });
-
-        // ✅ Show message only in visible layout
-        const isMobile = window.innerWidth < 768; // Tailwind md breakpoint
-        if (isMobile) {
-            document.getElementById('noResultsCard').classList.toggle('hidden', anyVisibleMobile);
-            document.getElementById('noResultsRow').classList.add('hidden');
-        } else {
-            document.getElementById('noResultsRow').classList.toggle('hidden', anyVisibleDesktop);
-            document.getElementById('noResultsCard').classList.add('hidden');
-        }
-    }
-
-
-    document.getElementById('searchInput').addEventListener('input', applySearchFilter);
-
-    // ---- Auto-refresh (10s) with smooth fade ----
-    setInterval(async () => {
-        try {
-            const res = await fetch('supplies/list.php');
-            if (!res.ok) throw new Error('Failed to refresh supplies');
-            const data = await res.json();
-            const newData = JSON.stringify(data);
-            const oldData = JSON.stringify(allSupplies);
-            if (newData !== oldData) {
-                allSupplies = data;
-                fadeUpdate(() => renderSupplies());
-            }
-        } catch (err) {
-            console.error('Auto-refresh failed:', err)
-        }
-    }, 10000);
-
-    function fadeUpdate(updateFn) {
-        const tbody = document.getElementById('supplyTableBody');
-        const mobile = document.getElementById('mobileCards');
-        tbody.style.opacity = '0';
-        mobile.style.opacity = '0';
-        setTimeout(() => {
-            updateFn();
-            tbody.style.opacity = '1';
-            mobile.style.opacity = '1';
-        }, 400);
-    }
-
-    // initial load
-    loadSupplies();
-    lucide.createIcons();
-
-
-    // 🌟 Toast function
-    function showToast(message, type = "success") {
-        const container = document.getElementById("toastContainer");
-        const toast = document.createElement("div");
-        toast.className = `toast toast-${type}`;
-        toast.innerHTML = `
-    <i data-lucide="${type === "success" ? "check-circle" : type === "error" ? "x-circle" : "alert-circle"}"
-      class="w-5 h-5"></i>
-    <span>${message}</span>
-  `;
-        container.appendChild(toast);
-        lucide.createIcons();
-
-        // Auto-remove
-        setTimeout(() => {
-            toast.remove();
-        }, 3500);
-    }
-    </script>
 </body>
-
 </html>
-
