@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EduSupply Connect - Login & Register</title>
+
+  <!-- Google Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Parkinsans:wght@300..800&display=swap" rel="stylesheet">
+
+  <!-- Tailwind + Lucide -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    body,
+    h1,
+    h2,
+    input,
+    select,
+    button,
+    p,
+    label {
+      font-family: "Parkinsans", sans-serif;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .animate-fadeIn {
+      animation: fadeIn 0.4s ease-out;
+    }
+
+    .tab-button {
+      transition: all 0.3s ease;
+    }
+
+    .tab-button:hover {
+      background-color: #ea580c;
+      color: #fff;
+      transform: scale(1.05);
+      box-shadow: 0 4px 15px rgba(255, 115, 0, 0.4);
+    }
+  </style>
+</head>
+
+<body class="relative flex items-center justify-center min-h-screen overflow-hidden">
+
+  <!-- Soft Blurred Background -->
+  <div class="absolute inset-0 bg-cover bg-center blur-sm scale-105"
+    style="background-image: url('assets/logo/danhs1.jpg');"></div>
+
+  <!-- Dark Overlay -->
+  <div class="absolute inset-0 bg-black/60"></div>
+
+  <!-- Login/Register Card -->
+  <div
+    class="relative w-full max-w-md rounded-2xl p-8 bg-white/10 backdrop-blur-lg border border-white/20 shadow-[0_8px_40px_rgba(0,0,0,0.4)] animate-fadeIn">
+
+    <!-- Logo -->
+    <div class="text-center mb-6">
+      <img src="assets/logo/logoEdu.png" alt="EduSupply Logo"
+        class="w-20 h-20 mx-auto mb-3 rounded-full shadow-lg border-2 border-white bg-white object-cover">
+      <h1 class="text-2xl font-bold text-white">EduSupply Connect</h1>
+      <p class="text-xs text-white/70 mt-1">School Supply Inventory & Request System for Teachers</p>
+    </div>
+
+    <!-- Header Tabs -->
+    <div class="flex justify-center mb-6 bg-white/10 rounded-full p-1 text-sm backdrop-blur-sm">
+      <button onclick="showForm('login')" id="loginBtn"
+        class="tab-button flex-1 py-2 rounded-full bg-orange-500 text-white font-medium shadow">Login</button>
+      <button onclick="showForm('register')" id="registerBtn"
+        class="tab-button flex-1 py-2 rounded-full text-white/80 font-medium">Register</button>
+    </div>
+
+    <!-- Login Form -->
+    <form id="loginForm" class="space-y-4 animate-fadeIn">
+      <h2 class="text-lg font-semibold text-white text-center mb-2 flex items-center justify-center gap-2">
+        <i data-lucide="lock" class="w-5 h-5"></i> Sign In
+      </h2>
+
+      <div class="relative">
+        <i data-lucide="user" class="absolute left-3 top-3.5 w-4 h-4 text-orange-400"></i>
+        <input type="text" id="loginUsername" placeholder="Username" required
+          class="w-full pl-9 pr-3 py-2 bg-white/95 text-gray-800 text-sm rounded-lg focus:ring-2 focus:ring-orange-400 outline-none transition" />
+      </div>
+
+      <div class="relative">
+        <i data-lucide="key" class="absolute left-3 top-3.5 w-4 h-4 text-orange-400"></i>
+        <input type="password" id="loginPassword" placeholder="Password" required
+          class="w-full pl-9 pr-3 py-2 bg-white/95 text-gray-800 text-sm rounded-lg focus:ring-2 focus:ring-orange-400 outline-none transition" />
+      </div>
+
+      <button type="button" onclick="handleLogin()"
+        class="w-full bg-orange-500 text-white text-sm font-semibold py-2.5 rounded-lg shadow-md hover:bg-orange-600 hover:shadow-lg hover:scale-[1.02] transition-all">Login</button>
+    </form>
+
+    <!-- Register Form -->
+    <form id="registerForm" class="space-y-4 hidden animate-fadeIn">
+      <h2 class="text-lg font-semibold text-white text-center mb-2 flex items-center justify-center gap-2">
+        <i data-lucide="user-plus" class="w-5 h-5"></i> Create Account
+      </h2>
+
+      <div class="relative">
+        <i data-lucide="user" class="absolute left-3 top-3.5 w-4 h-4 text-orange-400"></i>
+        <input type="text" id="registerUsername" placeholder="Username" required
+          class="w-full pl-9 pr-3 py-2 bg-white/95 text-gray-800 text-sm rounded-lg focus:ring-2 focus:ring-orange-400 outline-none transition" />
+      </div>
+
+      <div class="relative">
+        <i data-lucide="lock" class="absolute left-3 top-3.5 w-4 h-4 text-orange-400"></i>
+        <input type="password" id="registerPassword" placeholder="Password" required
+          class="w-full pl-9 pr-3 py-2 bg-white/95 text-gray-800 text-sm rounded-lg focus:ring-2 focus:ring-orange-400 outline-none transition" />
+      </div>
+
+      <div class="relative">
+        <i data-lucide="shield" class="absolute left-3 top-3.5 w-4 h-4 text-orange-400"></i>
+        <select id="registerRole" required
+          class="w-full pl-9 pr-8 py-2 bg-white/95 text-gray-800 text-sm rounded-lg focus:ring-2 focus:ring-orange-400 outline-none transition appearance-none">
+          <option value="" disabled selected hidden>Select Role</option>
+          <option value="admin">🧑‍💼 Admin</option>
+          <option value="teacher">👩‍🏫 Teacher</option>
+        </select>
+        <div class="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-orange-500">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"></path>
+          </svg>
+        </div>
+      </div>
+
+      <button type="button" onclick="handleRegister()"
+        class="w-full bg-orange-500 text-white text-sm font-semibold py-2.5 rounded-lg shadow-md hover:bg-orange-600 hover:shadow-lg hover:scale-[1.02] transition-all">Register</button>
+    </form>
+  </div>
+
+  <script>
+    lucide.createIcons();
+
+    function showForm(form) {
+      const loginForm = document.getElementById("loginForm");
+      const registerForm = document.getElementById("registerForm");
+      const loginBtn = document.getElementById("loginBtn");
+      const registerBtn = document.getElementById("registerBtn");
+
+      const isLogin = form === "login";
+      loginForm.classList.toggle("hidden", !isLogin);
+      registerForm.classList.toggle("hidden", isLogin);
+
+      loginBtn.classList.toggle("bg-orange-500", isLogin);
+      loginBtn.classList.toggle("text-white", isLogin);
+      loginBtn.classList.toggle("text-white/80", !isLogin);
+      registerBtn.classList.toggle("bg-orange-500", !isLogin);
+      registerBtn.classList.toggle("text-white", !isLogin);
+      registerBtn.classList.toggle("text-white/80", isLogin);
+    }
+
+    // --- Sample "Database" using localStorage ---
+    function handleRegister() {
+      const username = document.getElementById("registerUsername").value.trim();
+      const password = document.getElementById("registerPassword").value.trim();
+      const role = document.getElementById("registerRole").value;
+
+      if (!username || !password || !role) return alert("All fields are required!");
+
+      let users = JSON.parse(localStorage.getItem("users") || "[]");
+      if (users.find(u => u.username === username)) {
+        return alert("Username already exists!");
+      }
+
+      users.push({ username, password, role });
+      localStorage.setItem("users", JSON.stringify(users));
+      alert("Account created! Please login.");
+      showForm("login");
+    }
+
+    function handleLogin() {
+      const username = document.getElementById("loginUsername").value.trim();
+      const password = document.getElementById("loginPassword").value.trim();
+
+      let users = JSON.parse(localStorage.getItem("users") || "[]");
+      const user = users.find(u => u.username === username && u.password === password);
+
+      if (!user) return alert("Invalid username or password!");
+
+      // Simulate dashboard redirection
+      if (user.role === "admin") {
+        window.location.href = "admin_dashboard.html";
+      } else {
+        window.location.href = "teacher_dashboard.html";
+      }
+    }
+  </script>
+</body>
+
+</html>
