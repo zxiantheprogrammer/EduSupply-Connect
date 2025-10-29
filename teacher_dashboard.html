@@ -1,10 +1,3 @@
-<?php
-session_start();
-if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'teacher') {
-    header('Location: auth.html');
-    exit;
-}
-?>
 <!DOCTYPE html>
 <html lang="en">
 
@@ -598,5 +591,6 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'teacher') {
 
 
 </body>
+
 
 </html>
