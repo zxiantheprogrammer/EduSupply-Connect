@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Teacher Dashboard - My Requests</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<link href="https://fonts.googleapis.com/css2?family=Parkinsans:wght@300..800&display=swap" rel="stylesheet">
+<style>
+body, h1,h2,h3,h4,h5,h6,input,select,button,p,label { font-family:'Parkinsans', sans-serif; }
+body { background-color:#fafafa; color:#1f2937; letter-spacing:-0.01em; }
+.status-badge { display:inline-block; padding:0.25rem 0.5rem; font-size:0.75rem; font-weight:600; border-radius:9999px; }
+.status-pending { background-color:#fef3c7; color:#b45309; }
+.status-approved { background-color:#dcfce7; color:#166534; }
+.status-rejected { background-color:#fee2e2; color:#991b1b; }
+</style>
+</head>
+<body class="bg-gray-50 min-h-screen flex">
+
+<!-- Sidebar (simplified) -->
+<aside class="hidden md:flex w-56 bg-orange-600 text-white flex-col shadow-lg text-sm">
+  <div class="p-4 text-lg font-semibold border-b border-orange-500 flex items-center gap-2">
+    <i data-lucide="school" class="w-5 h-5"></i> Teacher Panel
+  </div>
+  <nav class="flex-1 mt-4 space-y-1 px-3">
+    <a href="teacher_dashboard.html" id="link-dashboard" class="flex items-center gap-2 px-3 py-2 rounded font-medium">
+      <i data-lucide="home" class="w-4 h-4"></i> Dashboard
+    </a>
+    <a href="teacher_requests.html" id="link-requests" class="flex items-center justify-between px-3 py-2 rounded font-medium">
+      <div class="flex items-center gap-2">
+        <i data-lucide="file-text" class="w-4 h-4"></i> My Requests
+      </div>
+      <span id="notifBadge" class="hidden bg-red-800 text-white text-xs font-semibold px-2 py-0.5 rounded-full shadow-md">0</span>
+    </a>
+    <a href="logout.html" class="flex items-center gap-2 px-3 py-2 rounded hover:bg-orange-700 transition font-medium">
+      <i data-lucide="log-out" class="w-4 h-4"></i> Log Out
+    </a>
+  </nav>
+  <div class="p-3 border-t border-orange-500 text-xs text-orange-100">
+    Logged in as: <strong>Teacher</strong>
+  </div>
+</aside>
+
+<!-- Main Content -->
+<main class="flex-1 p-4 sm:p-6">
+  <h2 class="text-xl font-semibold mb-5 flex items-center gap-2 text-gray-800">
+    <i data-lucide="list-checks" class="w-5 h-5 text-orange-600"></i> My Submitted Requests
+  </h2>
+
+  <div class="mb-4 flex items-center gap-3">
+    <label for="statusFilter" class="text-sm font-medium text-gray-700">Filter by Status:</label>
+    <select id="statusFilter" class="px-3 py-1.5 border border-gray-300 rounded-md text-sm" onchange="renderFilteredRequests()">
+      <option value="All">All</option>
+      <option value="Pending">Pending</option>
+      <option value="Approved">Approved</option>
+      <option value="Rejected">Rejected</option>
+    </select>
+  </div>
+
+  <!-- Desktop Table -->
+  <div class="hidden md:flex justify-center">
+    <div class="overflow-x-auto rounded-2xl shadow-sm border border-gray-100 bg-white w-full max-w-5xl">
+      <table class="min-w-full divide-y divide-gray-200 text-center">
+        <thead class="bg-orange-500 text-white">
+          <tr>
+            <th class="p-2">Date</th>
+            <th class="p-2">Item</th>
+            <th class="p-2">Variant</th>
+            <th class="p-2">Quantity</th>
+            <th class="p-2">Status</th>
+          </tr>
+        </thead>
+        <tbody id="desktopTableBody" class="transition-opacity duration-500"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Mobile Cards -->
+  <div id="mobileCards" class="md:hidden flex flex-col items-center gap-4 transition-opacity duration-500"></div>
+</main>
+
+<script>
+lucide.createIcons();
+
+// Sample Data
+let allRequests = [
+  {request_date:"2025-10-28", item_name:"Bond Paper", variant:"A4", quantity:1, status:"Pending"},
+  {request_date:"2025-10-27", item_name:"Marker", variant:"Black", quantity:1, status:"Approved"},
+  {request_date:"2025-10-26", item_name:"Eraser", variant:"-", quantity:1, status:"Rejected"},
+  {request_date:"2025-10-25", item_name:"Ink Printer", variant:"CYAN", quantity:1, status:"Pending"},
+  {request_date:"2025-10-24", item_name:"Envelope", variant:"Long", quantity:1, status:"Approved"},
+];
+
+// Functions
+function statusBadge(status){
+  if(status==="Pending") return `<span class="status-badge status-pending">Pending</span>`;
+  if(status==="Approved") return `<span class="status-badge status-approved">Approved</span>`;
+  if(status==="Rejected") return `<span class="status-badge status-rejected">Rejected</span>`;
+  return `<span class="status-badge bg-gray-100 text-gray-800">${status}</span>`;
+}
+
+function formatDate(dateStr){
+  const d = new Date(dateStr);
+  return d.toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
+}
+
+function renderFilteredRequests(){
+  const filter = document.getElementById('statusFilter').value;
+  let filtered = allRequests.filter(r=>filter==="All"||r.status===filter);
+  filtered.sort((a,b)=>new Date(b.request_date)-new Date(a.request_date));
+
+  const desktopTbody = document.getElementById('desktopTableBody');
+  const mobileGrid = document.getElementById('mobileCards');
+  desktopTbody.innerHTML = '';
+  mobileGrid.innerHTML = '';
+
+  if(filtered.length===0){
+    desktopTbody.innerHTML=`<tr><td colspan="5" class="p-4 text-center text-gray-500">No requests found.</td></tr>`;
+    mobileGrid.innerHTML=`<p class="text-gray-500 text-center py-10">No requests found.</p>`;
+    return;
+  }
+
+  filtered.forEach(r=>{
+    const date=formatDate(r.request_date);
+    const item=r.item_name;
+    const variant=r.variant||'-';
+    const quantity=r.quantity;
+
+    // Desktop row
+    desktopTbody.innerHTML+=`
+      <tr class="hover:bg-gray-50 transition">
+        <td class="p-2 text-sm text-gray-700">${date}</td>
+        <td class="p-2 text-sm text-gray-800">${item}</td>
+        <td class="p-2 text-sm text-gray-800">${variant}</td>
+        <td class="p-2 text-sm text-gray-800">${quantity}</td>
+        <td class="p-2 text-sm">${statusBadge(r.status)}</td>
+      </tr>
+    `;
+
+    // Mobile card
+    mobileGrid.innerHTML+=`
+      <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 flex flex-col gap-2 hover:shadow-lg transition w-full max-w-sm text-center">
+        <div class="flex justify-between items-center mb-2">
+          <span class="text-sm text-gray-700 font-medium">${date}</span>
+          ${statusBadge(r.status)}
+        </div>
+        <p class="text-sm text-gray-800"><strong>Item:</strong> ${item}</p>
+        <p class="text-sm text-gray-800"><strong>Variant:</strong> ${variant}</p>
+        <p class="text-sm text-gray-800"><strong>Quantity:</strong> ${quantity}</p>
+      </div>
+    `;
+  });
+}
+
+// Active Sidebar
+const links={'teacher_dashboard.html':document.getElementById('link-dashboard'),'teacher_requests.html':document.getElementById('link-requests')};
+const currentPage=window.location.pathname.split('/').pop();
+if(links[currentPage]) links[currentPage].classList.add('nav-active'); else Object.values(links).forEach(l=>l.classList.add('nav-hover'));
+
+// Fake request count loader for demo (replace with actual fetch)
+let lastCount=0;
+function loadRequestCount(){
+  const badge=document.getElementById('notifBadge');
+  const count=Math.floor(Math.random()*5); // demo random
+  if(count>0){ badge.textContent=count; badge.classList.remove('hidden'); if(count!==lastCount){ badge.classList.add('bounce'); setTimeout(()=>badge.classList.remove('bounce'),500); } }
+  else badge.classList.add('hidden');
+  lastCount=count;
+}
+
+// Initial render
+renderFilteredRequests();
+</script>
+</body>
+</html>
